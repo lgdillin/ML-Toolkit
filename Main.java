@@ -966,9 +966,110 @@ class Main
 		nn1.train_with_images(x_observations, states);
 	}
 
-	public static void main(String[] args) {
+	public static void work() {
+		Random random = new Random(123456);
 
+		/// Load data
+		Matrix data = new Matrix();
+		data.loadARFF("data/labeled_data_noextras-random.arff");
+
+		/// Create a new filter to preprocess our data
+		Filter f = new Filter(random);
+
+		/// Partition the features from the labels
+		Matrix features = new Matrix();
+		Matrix labels = new Matrix();
+		f.splitLabels(data, features, labels);
+
+		/// Partition the data into training and testing blocks
+		/// With respective feature and labels blocks
+		double splitRatio = 0.75;
+		Matrix trainingFeatures = new Matrix();
+		Matrix trainingLabels = new Matrix();
+		Matrix testingFeatures = new Matrix();
+		Matrix testingLabels = new Matrix();
+		f.splitData(features, labels, trainingFeatures, trainingLabels,
+			testingFeatures, testingLabels, 5, 0);
+
+
+		/// Build index arrays to shuffle training and testing data
+		int[] trainingIndices = new int[trainingFeatures.rows()];
+		int[] testIndices = new int[testingFeatures.rows()];
+
+		// populate the index arrays with indices
+		for(int i = 0; i < trainingIndices.length; ++i) { trainingIndices[i] = i; }
+		for(int i = 0; i < testIndices.length; ++i) { testIndices[i] = i; }
+
+
+		/// I want some intelligent way of getting the input and outputs
+		f.nn.layers.add(new LayerLinear(trainingFeatures.cols(), 80));
+		f.nn.layers.add(new LayerTanh(80));
+
+		f.nn.layers.add(new LayerLinear(80, 100));
+		f.nn.layers.add(new LayerTanh(100));
+
+		f.nn.layers.add(new LayerLinear(100, 20));
+		f.nn.layers.add(new LayerTanh(20));
+
+		f.nn.layers.add(new LayerLinear(20, 1));
+		f.nn.layers.add(new LayerTanh(1));
+
+		f.nn.initWeights();
+
+		int mis = testingLabels.rows();
+		int epoch = 0;
+
+		double testSSE = 0;
+		double trainSSE = 0;
+
+		double previous = 0;
+		double tolerance = 0.0000009;
+
+
+		System.out.println("batch,seconds,testRMSE,trainRMSE");
+		int batch = 1;
+		int batch_size = 1;
+		double startTime = (double)System.nanoTime();
+
+		double[] testpattern = {0,188,7309,1,0,0,0,0,1,0};
+		Vec vvv = new Vec(testpattern);
+		while(true) {
+
+			testSSE += f.sum_squared_error(testingFeatures, testingLabels);
+			double testMSE = testSSE / testingFeatures.rows();
+			double testRMSE = Math.sqrt(testMSE);
+
+			trainSSE += f.sum_squared_error(trainingFeatures, trainingLabels);
+			double trainMSE = trainSSE / trainingFeatures.rows();
+			double trainRMSE = Math.sqrt(trainMSE);
+
+			f.trainNeuralNet(trainingFeatures, trainingLabels, trainingIndices, batch_size, 0.0);
+			// double mse = sse / batch;
+			// double rmse = Math.sqrt(mse);
+
+			double seconds = ((double)System.nanoTime() - startTime) / 1e9;
+			System.out.println(batch + "," + seconds + "," + testRMSE + "," + trainRMSE);
+
+			batch = batch + 1;
+
+			// mis = f.countMisclassifications(testingFeatures, testingLabels);
+			// System.out.println("mis: " + mis);
+
+			double convergence = Math.abs(1 - (previous / testSSE));
+			previous = testSSE;
+			testSSE = 0;
+			trainSSE = 0;
+			System.out.println("testPattern" + f.nn.predict(vvv));
+			// 0,188,7309,1,0,0,0,0,1,0,'authentic'
+			if(convergence < tolerance) break;
+
+		}
+
+	}
+
+	public static void main(String[] args) {
+		work();
 		//testNN();
-		infer_test();
+		//infer_test();
 	}
 }
