@@ -84,7 +84,7 @@ public class NeuralNet extends SupervisedLearner {
     int pos = weights.size();
     for(int i = layers.size()-1; i >= 0; --i) {
       Layer l = layers.get(i);
-      //l.debug();
+      // l.debug();
 
       int weightsChunk = l.getNumberWeights();
       pos -= weightsChunk;

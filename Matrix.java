@@ -121,8 +121,118 @@ public class Matrix
 		return list;
 	}
 
+	/*
+	/// Loads the matrix from an ARFF file
+		public void loadARFF(String filename)
+		{
+			int attrCount = 0; // Count number of attributes
+			int lineNum = 0; // Used for exception messages
+			Scanner s = null;
+			m_str_to_enum.clear();
+			m_enum_to_str.clear();
+			m_attr_name.clear();
+
+			try
+			{
+				s = new Scanner(new File(filename));
+				while (s.hasNextLine())
+				{
+					lineNum++;
+					String line  = s.nextLine().trim();
+					String upper = line.toUpperCase();
+
+					if (upper.startsWith("@RELATION"))
+						m_filename = line.split(" ")[1];
+					else if (upper.startsWith("@ATTRIBUTE"))
+					{
+						HashMap<String, Integer> str_to_enum = new HashMap<String, Integer>();
+						HashMap<Integer, String> enum_to_str = new HashMap<Integer, String>();
+						m_str_to_enum.add(str_to_enum);
+						m_enum_to_str.add(enum_to_str);
+
+						Json.StringParser sp = new Json.StringParser(line);
+						sp.advance(10);
+						sp.skipWhitespace();
+						sp.advance(1);
+						String attrName = sp.until('\'');
+						sp.advance(1);
+						m_attr_name.add(attrName);
+						sp.skipWhitespace();
+						int valCount = 0;
+						if(sp.peek() == '{')
+						{
+							sp.advance(1);
+							while(sp.peek() != '}')
+							{
+								sp.skipWhitespace();
+								String attrVal = sp.untilQuoteSensitive(',', '}');
+								if(sp.peek() == ',')
+									sp.advance(1);
+								if(str_to_enum.containsKey(attrVal))
+									throw new RuntimeException("Duplicate attribute value: " + attrVal);
+								str_to_enum.put(attrVal, new Integer(valCount));
+								enum_to_str.put(new Integer(valCount), attrVal);
+								valCount++;
+							}
+							sp.advance(1);
+						}
+						attrCount++;
+					}
+					else if (upper.startsWith("@DATA"))
+					{
+						m_data.clear();
+
+						while (s.hasNextLine())
+						{
+							lineNum++;
+							line = s.nextLine().trim();
+							if (line.startsWith("%") || line.isEmpty())
+								continue;
+							double[] row = new double[attrCount];
+							m_data.add(row);
+							Json.StringParser sp = new Json.StringParser(line);
+							for(int i = 0; i < attrCount; i++)
+							{
+								sp.skipWhitespace();
+								String val = sp.untilQuoteSensitive(',', '\n');
+
+								int valueCount = m_enum_to_str.get(i).size();
+								if (val.equals("?")) // Unknown values are always set to UNKNOWN_VALUE
+								{
+									row[i] = UNKNOWN_VALUE;
+								}
+								else if (valueCount > 0) // if it's nominal
+								{
+									HashMap<String, Integer> enumMap = m_str_to_enum.get(i);
+									if (!enumMap.containsKey(val))
+									{
+										throw new IllegalArgumentException("Unrecognized enumeration value " + val + " on line: " + lineNum + ".");
+									}
+
+									row[i] = (double)enumMap.get(val);
+								}
+								else // else it's continuous
+									row[i] = Double.parseDouble(val); // The attribute is continuous
+
+								sp.advance(1);
+							}
+						}
+					}
+				}
+			}
+			catch (FileNotFoundException e)
+			{
+				throw new IllegalArgumentException("Failed to open file: " + filename + ".");
+			}
+			finally
+			{
+				s.close();
+			}
+		}
+		*/
 
 	/// Loads the matrix from an ARFF file
+
 	public void loadARFF(String filename)
 	{
 		int attrCount = 0; // Count number of attributes

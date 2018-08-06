@@ -981,6 +981,18 @@ class Main
 		Matrix labels = new Matrix();
 		f.splitLabels(data, features, labels);
 
+		System.out.println(features.rows() + " " + features.cols());
+		System.out.println(labels.rows() + " " + labels.cols());
+
+		/// PREPROCESSING
+		// We need a set of preprocessors for both features and labels
+
+		// Train the preprocessors for the training data
+		f.train(features, labels, null, 0, 0.0);
+
+		System.out.println(features.rows() + " " + features.cols());
+		System.out.println(labels.rows() + " " + labels.cols());
+
 		/// Partition the data into training and testing blocks
 		/// With respective feature and labels blocks
 		double splitRatio = 0.75;
@@ -1009,7 +1021,7 @@ class Main
 		f.nn.layers.add(new LayerTanh(100));
 
 		f.nn.layers.add(new LayerLinear(100, 20));
-		f.nn.layers.add(new LayerTanh(20));
+		f.nn.layers.add(new LayerSine(20));
 
 		f.nn.layers.add(new LayerLinear(20, 1));
 		f.nn.layers.add(new LayerTanh(1));
@@ -1031,7 +1043,7 @@ class Main
 		int batch_size = 1;
 		double startTime = (double)System.nanoTime();
 
-		double[] testpattern = {0,188,7309,1,0,0,0,0,1,0};
+		double[] testpattern = {6,63,702,0,0,1,0,7,0,1};
 		Vec vvv = new Vec(testpattern);
 		while(true) {
 
