@@ -4,6 +4,8 @@
 // ----------------------------------------------------------------
 import java.util.Random;
 import java.lang.*;
+import java.util.Scanner;
+import java.io.*;
 
 class Main
 {
@@ -168,23 +170,24 @@ class Main
 				target.vals[(int) trainLabels.row(i).get(0)] = 1;
 
 				//nn.refineWeights(in, target, nn.weights, 0.0175, Training.STOCHASTIC);
+				//nn.train()
 			}
 
 			// Shuffle training and testing indices
-			for(int i = 0; i < trainingIndices.length * 0.5; ++i) {
-				int randomIndex = random.nextInt(trainingIndices.length);
-				int temp = trainingIndices[i];
-				trainingIndices[i] = trainingIndices[randomIndex];
-				trainingIndices[randomIndex] = temp;
+			// for(int i = 0; i < trainingIndices.length * 0.5; ++i) {
+			// 	int randomIndex = random.nextInt(trainingIndices.length);
+			// 	int temp = trainingIndices[i];
+			// 	trainingIndices[i] = trainingIndices[randomIndex];
+			// 	trainingIndices[randomIndex] = temp;
 
-			}
+			// }
 
-			for(int i = 0; i < testIndices.length * 0.5; ++i) {
-				int randomIndex = random.nextInt(testIndices.length);
-				int temp = testIndices[i];
-				testIndices[i] = testIndices[randomIndex];
-				testIndices[randomIndex] = temp;
-			}
+			// for(int i = 0; i < testIndices.length * 0.5; ++i) {
+			// 	int randomIndex = random.nextInt(testIndices.length);
+			// 	int temp = testIndices[i];
+			// 	testIndices[i] = testIndices[randomIndex];
+			// 	testIndices[randomIndex] = temp;
+			// }
 
 			++epoch;
 		}
@@ -971,7 +974,13 @@ class Main
 
 		/// Load data
 		Matrix data = new Matrix();
-		data.loadARFF("data/labeled_data_noextras-random.arff");
+		//data.loadARFF("data/labeled_data_noextras-random.arff");
+		//data.loadARFF("data/good_data_shuffled1.arff");
+		data.loadARFF("data/scraper_user_dropped_clean_relabeled.arff");
+		
+		// Some test data
+		Matrix testData = new Matrix();
+		testData.loadARFF("data/scraper_user_dropped_clean.arff");
 
 		/// Create a new filter to preprocess our data
 		Filter f = new Filter(random);
@@ -983,6 +992,8 @@ class Main
 
 		System.out.println(features.rows() + " " + features.cols());
 		System.out.println(labels.rows() + " " + labels.cols());
+		System.out.println(labels.valueCount(0));
+		//System.out.println(labels);
 
 		/// PREPROCESSING
 		// We need a set of preprocessors for both features and labels
@@ -990,12 +1001,16 @@ class Main
 		// Train the preprocessors for the training data
 		f.train(features, labels, null, 0, 0.0);
 
-		System.out.println(features.rows() + " " + features.cols());
-		System.out.println(labels.rows() + " " + labels.cols());
+		System.out.println(labels.row(0));
 
-		/// Partition the data into training and testing blocks
-		/// With respective feature and labels blocks
-		double splitRatio = 0.75;
+
+		Matrix outputFeatures = new Matrix();
+		Matrix outputLabels = new Matrix();
+		f.splitLabels(testData, outputFeatures, outputLabels);
+		f.train(outputFeatures, outputLabels, null, 0, 0.0);
+
+		// Partition the data into training and testing blocks
+		// With respective feature and labels blocks
 		Matrix trainingFeatures = new Matrix();
 		Matrix trainingLabels = new Matrix();
 		Matrix testingFeatures = new Matrix();
@@ -1014,17 +1029,48 @@ class Main
 
 
 		/// I want some intelligent way of getting the input and outputs
-		f.nn.layers.add(new LayerLinear(trainingFeatures.cols(), 80));
-		f.nn.layers.add(new LayerTanh(80));
+		// f.nn.layers.add(new LayerLinear(48, 4));
+		// f.nn.layers.add(new LayerTanh(4));
 
-		f.nn.layers.add(new LayerLinear(80, 100));
-		f.nn.layers.add(new LayerTanh(100));
+		// f.nn.layers.add(new LayerLinear(trainingFeatures.cols(), 100));
+		// f.nn.layers.add(new LayerTanh(25));
 
-		f.nn.layers.add(new LayerLinear(100, 20));
-		f.nn.layers.add(new LayerSine(20));
+		// f.nn.layers.add(new LayerConv(new int[]{5, 5}, new int[]{4, 4}, new int[]{3, 3}));
+		// f.nn.layers.add(new LayerLeakyRectifier(3 * 3 * 2));
+		// f.nn.layers.add(new LayerMaxPooling2D(3, 3, 2));
+
+		// f.nn.layers.add(new LayerLinear(9, 1));
+		// f.nn.layers.add(new LayerTanh(1));
+
+		f.nn.layers.add(new LayerLinear(trainingFeatures.cols(), 30));
+		f.nn.layers.add(new LayerLeakyRectifier(30));
+
+		f.nn.layers.add(new LayerLinear(30, 20));
+		f.nn.layers.add(new LayerLeakyRectifier(20));
 
 		f.nn.layers.add(new LayerLinear(20, 1));
-		f.nn.layers.add(new LayerTanh(1));
+		f.nn.layers.add(new LayerLeakyRectifier(1));
+
+		// f.nn.layers.add(new LayerLinear(50, 100));
+		// f.nn.layers.add(new LayerLeakyRectifier(100));
+
+		// f.nn.layers.add(new LayerLinear(30, 50));
+		// f.nn.layers.add(new LayerLeakyRectifier(50));
+
+		// f.nn.layers.add(new LayerLinear(50, 30));
+		// f.nn.layers.add(new LayerLeakyRectifier(30));
+
+		// f.nn.layers.add(new LayerLinear(30, 20));
+		// f.nn.layers.add(new LayerLeakyRectifier(20));
+
+		// f.nn.layers.add(new LayerLinear(20, 10));
+		// f.nn.layers.add(new LayerLeakyRectifier(10));
+
+		// f.nn.layers.add(new LayerLinear(10, 5));
+		// f.nn.layers.add(new LayerLeakyRectifier(5));
+
+		// f.nn.layers.add(new LayerLinear(5, 1));
+		// f.nn.layers.add(new LayerLeakyRectifier(1));
 
 		f.nn.initWeights();
 
@@ -1043,8 +1089,6 @@ class Main
 		int batch_size = 1;
 		double startTime = (double)System.nanoTime();
 
-		double[] testpattern = {6,63,702,0,0,1,0,7,0,1};
-		Vec vvv = new Vec(testpattern);
 		while(true) {
 
 			testSSE += f.sum_squared_error(testingFeatures, testingLabels);
@@ -1060,28 +1104,91 @@ class Main
 			// double rmse = Math.sqrt(mse);
 
 			double seconds = ((double)System.nanoTime() - startTime) / 1e9;
-			System.out.println(batch + "," + seconds + "," + testRMSE + "," + trainRMSE);
+			System.out.println(batch + "," + seconds + "," + testRMSE + "," + trainRMSE + "\n\n");
 
 			batch = batch + 1;
 
-			// mis = f.countMisclassifications(testingFeatures, testingLabels);
-			// System.out.println("mis: " + mis);
+			//f.nn.createLabels(outputFeatures, outputLabels);
+
+			//mis = f.countMisclassifications(testingFeatures, testingLabels);
+			//System.out.println("mis: " + mis + " / " + testingLabels.rows() + " or " + ((float)mis/testingLabels.rows()));
 
 			double convergence = Math.abs(1 - (previous / testSSE));
 			previous = testSSE;
 			testSSE = 0;
 			trainSSE = 0;
-			System.out.println("testPattern" + f.nn.predict(vvv));
+			//System.out.println("testPattern" + f.nn.predict(vvv));
 			// 0,188,7309,1,0,0,0,0,1,0,'authentic'
 			if(convergence < tolerance) break;
 
+			if(batch > 100000 && testRMSE < 0.09) break;
+
+			if(batch > 60000 && testRMSE < 0.06) break;
+			
+
 		}
+		//little(outputLabels);
 
 	}
 
+	
+	public static void little(Matrix outputLabels) {
+
+		try {
+			File file = new File("data/scraper_user_dropped_clean.arff");
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
+			StringBuffer stringBuffer = new StringBuffer();
+			String line;
+			int labelIndex = 0;
+
+			int testing = 0;
+			boolean readingData = false;
+			while ((line = bufferedReader.readLine()) != null) {
+				if(readingData) {
+					double labelValue = outputLabels.row(labelIndex).get(0);
+					
+					if(labelValue == 0.0) {
+						
+						String replacement = line.replaceAll("authentic", "poor");
+						stringBuffer.append(replacement);
+						stringBuffer.append("\n");
+					} else if(labelValue == 1.0) {
+						String replacement = line.replaceAll("poor", "authentic");
+						stringBuffer.append(replacement);
+						stringBuffer.append("\n");
+					}
+					++labelIndex;
+				} else {
+					stringBuffer.append(line);
+					stringBuffer.append("\n");
+				}
+				
+
+				if(line.equals("@data")) {
+					readingData = true;
+					
+				}
+			}
+			fileReader.close();
+
+
+			PrintWriter out = new PrintWriter("data/scraper_user_dropped_clean_relabeled.arff");
+			out.println(stringBuffer);
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
 	public static void main(String[] args) {
+		//little();
 		work();
+		//testNomCat();
+		//opticalCharacterRecognition();
 		//testNN();
 		//infer_test();
+		//asgn4();
 	}
 }

@@ -4,11 +4,11 @@ import java.util.Random;
 public class NeuralNet extends SupervisedLearner {
   // This number is persistent between epochs
   // It allows for decreasing learning rates
-  private double learning_scale = 1.0;
+  private double learning_scale = 0.75;
   private double learning_rate = 0.0175;
 
 
-  private int reg_mode = 2; // temporary place holder for regularization
+  private int reg_mode = 0; // temporary place holder for regularization
   private double lambda_1 = 0.0001;
   private double lambda_2 = 0.01;
 
@@ -170,7 +170,7 @@ public class NeuralNet extends SupervisedLearner {
 
       // Decrease learning rate
       if(learning_rate > 0)
-        learning_scale -= 0.000001;
+        learning_scale -= 0.0000001;  
 
       scrambleIndices(random, indices, null);
     }

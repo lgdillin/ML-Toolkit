@@ -154,6 +154,19 @@ abstract class SupervisedLearner
 		return mis;
 	}
 
+		/// Creates a label vector given a training set
+		void createLabels(Matrix features, Matrix outLabels) {
+			if(features.rows() != outLabels.rows())
+				throw new IllegalArgumentException("Mismatching number of rows");
+
+			for(int i = 0; i < features.rows(); i++) {
+				Vec feat = features.row(i);
+				Vec pred = predict(feat);
+
+				outLabels.row(i).set(0, (double)(Math.round(pred.get(0))));
+			}
+		}
+
 	Vec formatLabel(int label) {
 		if(label > 9 || label < 0)
 			throw new IllegalArgumentException("not a valid labels!");

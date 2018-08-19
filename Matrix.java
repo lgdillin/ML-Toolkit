@@ -251,6 +251,8 @@ public class Matrix
 				String line  = s.nextLine().trim();
 				String upper = line.toUpperCase();
 
+				//System.out.println(line);
+
 				if (upper.startsWith("@RELATION"))
 					m_filename = line.split(" ")[1];
 				else if (upper.startsWith("@ATTRIBUTE"))
